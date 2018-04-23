@@ -1,0 +1,28 @@
+#!/usr/bin/env osascript -l JavaScript
+ObjC.import('stdlib')
+
+function run(argv) {
+    const [newSettingSetName, ...commandArray] = argv;
+    const app = Application("Terminal");
+    const oldSettingsName = app.windows[0].selectedTab.currentSettings.name();
+
+    setSettingSet(app, newSettingSetName);
+    if (commandArray.length) {
+        const status = $.system(commandArray.join(" "));
+        setSettingSet(app, oldSettingsName);
+        $.exit(status)
+    }
+}
+
+function setSettingSet(app, name) {
+    let sets = app.settingsSets.whose({name: name});
+    assertSingleSettingSet(sets, "Didn't find unique profile with name '" + name + "'");
+    app.windows[0].selectedTab.currentSettings = sets.first();
+}
+
+function assertSingleSettingSet(settingSets, errorMessage) {
+    if (settingSets.length !== 1) {
+        console.log(errorMessage)
+        $.exit(-1);
+    }
+}
